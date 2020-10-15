@@ -231,7 +231,7 @@ class _AutoCommitterIterator:
         if not isinstance(dataloader, DataLoader):
             raise TypeError("A DataLoader must be provided.")
 
-        if not issubclass(dataloader.dataset.__class__, KafkaDataset):
+        if not isinstance(dataloader.dataset, KafkaDataset):
             raise TypeError("The DataLoader must iterate over a KafkaDataset.")
 
         self.dataloader = dataloader
