@@ -60,7 +60,21 @@ class KafkaDataset(IterableDataset):
         # that it's being multi-processed. It will be set during the worker
         # init.
         self._worker_id = None
-        self._consumer = self.new_consumer(*args, **kwargs)
+
+        # Check what we want to create. For a placeholder, we don't bother
+        # instanciating a consumer as we won't use it anyway.
+        # Otherwise, all attributes are passed to the consumer builder.
+        if kwargs.get("_is_placeholder", False):
+            self._consumer = None
+        else:
+            if len(args) == 0:
+                raise ValueError(
+                    "No topic was provided. "
+                    "Please use the placeholder() method "
+                    "to create a dataset without consumer."
+                )
+
+            self._consumer = self.new_consumer(*args, **kwargs)
 
     def __del__(self):
         self.close()
@@ -149,8 +163,14 @@ class KafkaDataset(IterableDataset):
         All parameters are passed to the KafkaConsumer constructor. See the
         Kafka documentation.
         """
-        # Force auto commit to False
+        # Force auto commit to False if we have topics provided
+        if len(args) == 0:
+            raise ValueError("Cannot create a consumer without topic.")
+
         kwargs["enable_auto_commit"] = False
+
+        if "_is_placeholder" in kwargs:
+            del kwargs["_is_placeholder"]
 
         return KafkaConsumer(*args, **kwargs)
 
@@ -193,10 +213,7 @@ class KafkaDataset(IterableDataset):
         be used to build an "empty" dataset before using a multiprocessed
         DataLoader.
         """
-        dataset = cls()
-        dataset._consumer = None
-
-        return dataset
+        return cls(_is_placeholder = True)
 
 
 class _AutoCommitterIterator:
