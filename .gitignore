@@ -1,0 +1,10 @@
+.vscode
+*.pyc
+__pycache__
+env*
+dist
+build
+*.egg-info
+.ipynb_checkpoints
+.coverage
+coverage.xml
