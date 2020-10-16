@@ -140,6 +140,10 @@ class KafkaDataset(IterableDataset):
         for record in self._consumer:
             yield self._process(record)
 
+        # Resetting the signal stuff once done iterating
+        if self._worker_id is not None:
+            signal.signal(self._COMMIT_SIGNAL, signal.SIG_DFL)
+
     def _process(self, record):
         """Define the processing that is applied to each Kafka record.
 
