@@ -235,17 +235,16 @@ class _AutoCommitterIterator:
         if not isinstance(dataloader, DataLoader):
             raise TypeError("A DataLoader must be provided.")
 
-        if not isinstance(dataloader.dataset, KafkaDataset):
-            raise TypeError("The DataLoader must iterate over a KafkaDataset.")
-
         self.dataloader = dataloader
-        self._dataset_class = dataloader.dataset.__class__
 
     def __iter__(self):
-        # Define how to iter on the data
-        # The way we process depends if we are using singleprocessing or
-        # multiprocessing.
-        if self.dataloader.num_workers == 0:
+        # For "regular" datasets, just iterating as the DataLoader would do
+        if not isinstance(self.dataloader.dataset, KafkaDataset):
+            yield from self.dataloader
+        elif self.dataloader.num_workers == 0:
+            # Define how to iter on the data
+            # The way we process depends if we are using singleprocessing or
+            # multiprocessing.
             # For singleprocessing, it's easy, we just need to commit the
             # dataset every time.
             for batch in self.dataloader:
@@ -264,7 +263,8 @@ class _AutoCommitterIterator:
             for w, batch in zip(workers, batches):
                 yield batch
 
-                self._dataset_class.commit_worker(w)
+                # Using the instance to access the class method
+                self.dataloader.dataset.commit_worker(w)
 
 
 def auto_commit(dataloader: DataLoader):
