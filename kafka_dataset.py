@@ -118,15 +118,14 @@ class KafkaDataset(IterableDataset):
         try:
             self._consumer.commit()
         except CommitFailedError as e:
-            if e.retriable:
-                _logger.error("Commit failed. Retrying.")
-                self._commit()
-            else:
-                _logger.error(
-                    "Commit failed and consumer cannot recover. Re-joigning."
-                )
-                # NOTE : This could also raise error. Perhaps to catch.
-                self._consumer.seek_to_end()
+            _logger.error(
+                "Commit failed and consumer cannot recover. Re-joigning."
+            )
+            print(
+                "Commit failed and consumer cannot recover. Re-joigning."
+            )
+            # NOTE : This could also raise error. Perhaps to catch.
+            self._consumer.seek_to_end()
 
     def __iter__(self):
         if self._consumer is None:
