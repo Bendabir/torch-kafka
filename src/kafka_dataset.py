@@ -91,6 +91,7 @@ class KafkaDataset(IterableDataset):
         self._commit_required = False
 
     def commit(self, signum = None, stack = None):
+        # pylint: disable=unused-argument
         """Commit the offsets of the Kafka consumer. In multiprocessing mode,
         this is called when a POSIX signal is received. 'signum' and 'stack'
         are to be ignored in singleprocessing mode.
@@ -210,7 +211,8 @@ class KafkaDataset(IterableDataset):
         Kafka documentation.
         """
         # Define a worker_init_fn that creates a consumer per dataset instance
-        def fn(worker_id):
+        def func(worker_id):
+            # pylint: disable=no-member,protected-access
             worker_info = get_worker_info()
 
             if worker_info is None:
@@ -219,12 +221,11 @@ class KafkaDataset(IterableDataset):
                     "only."
                 )
 
-            # pylint: disable=no-member
             dataset = worker_info.dataset
             dataset._consumer = cls.new_consumer(*args, **kwargs)
             dataset._worker_id = worker_id
 
-        return fn
+        return func
 
     @classmethod
     def commit_worker(cls, worker: mp.Process):

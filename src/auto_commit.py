@@ -39,6 +39,7 @@ def auto_commit(dataloader: DataLoader):
     TypeError
         If the dataloader is not a PyTorch dataloader.
     """
+    # pylint: disable=protected-access
     if not isinstance(dataloader, DataLoader):
         raise TypeError("A DataLoader must be provided.")
 
