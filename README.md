@@ -20,7 +20,7 @@ pip install .
 You can also install it directly from GitHub.
 
 ```bash
-pip install git+https://github.com/bendabir/torch-kafka
+pip install git+https://github.com/bendabir/torch-kafka@1.1.0
 ```
 
 ## Usage
