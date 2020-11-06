@@ -14,7 +14,13 @@ Of course, best is to use a virtual env.
 virtualenv -p python3.8 env
 source env/bin/activate
 
-pip install -r requirements.txt
+pip install .
+```
+
+You can also install it directly from GitHub.
+
+```bash
+pip install git+https://github.com/bendabir/torch-kafka
 ```
 
 ## Usage
