@@ -62,6 +62,10 @@ class KafkaDataset(IterableDataset):
         # init.
         self._worker_id = None
 
+        # Flag to monitor if the data need to be committed.
+        # This is useful for multiprocessing.
+        self._commit_required = False
+
         # Check what we want to create. For a placeholder, we don't bother
         # instanciating a consumer as we won't use it anyway.
         # Otherwise, all attributes are passed to the consumer builder.
@@ -86,6 +90,8 @@ class KafkaDataset(IterableDataset):
         if getattr(self, "_consumer", None) is not None:
             self._consumer.close(autocommit = False)
 
+        self._commit_required = False
+
     def commit(self, signum = None, stack = None):
         """Commit the offsets of the Kafka consumer. In multiprocessing mode,
         this is called when a POSIX signal is received. 'signum' and 'stack'
@@ -96,9 +102,9 @@ class KafkaDataset(IterableDataset):
 
         # Committing right away if in main process
         if self._worker_id is None:
-            _logger.debug("Committing offsets.")
-            self._commit()
-        # Otherwise, checking we got the right signal
+            # In main process, committing right away
+            self._commit_if_required(force = True)
+        # Otherwise, checking we got the right signal and set the flag
         elif signum is not None:
             if signum != self._COMMIT_SIGNAL:
                 raise ValueError(
@@ -106,26 +112,38 @@ class KafkaDataset(IterableDataset):
                     f"a bad signal ({signum})."
                 )
 
-            _logger.debug(f"Committing offsets on worker {self._worker_id}.")
-            self._commit()
+            self._commit_required = True
         else:
             raise RuntimeError(
                 "Direct commit should not be used with multiprocessing."
             )
 
-    def _commit(self):
-        # The actual commit stuff
+    def _commit_if_required(self, force: bool = False):
+        if not force and not self._commit_required:
+            return
+
+        if self._worker_id is None:
+            _logger.debug("Committing offsets.")
+        else:
+            _logger.info("Committing offsets on worker %d.", self._worker_id)
+
         try:
             self._consumer.commit()
-        except CommitFailedError as e:
-            _logger.error(
-                "Commit failed and consumer cannot recover. Re-joigning."
-            )
-            print(
-                "Commit failed and consumer cannot recover. Re-joigning."
-            )
-            # NOTE : This could also raise error. Perhaps to catch.
-            self._consumer.seek_to_end()
+        except CommitFailedError:
+            if self._worker_id is None:
+                _logger.error("Commit failed.")
+            else:
+                _logger.error("Commit failed on worker %d.", self._worker_id)
+        else:
+            if self._worker_id is None:
+                _logger.debug("Committed offsets.")
+            else:
+                _logger.debug(
+                    "Committed offsets on worker %d.",
+                    self._worker_id
+                )
+        finally:
+            self._commit_required = False
 
     def __iter__(self):
         if self._consumer is None:
@@ -138,6 +156,11 @@ class KafkaDataset(IterableDataset):
 
         for record in self._consumer:
             yield self._process(record)
+
+            # Commit in the loop when multiprocessed.
+            # This will block the loop and avoid deadlock issues.
+            if self._worker_id is not None:
+                self._commit_if_required()
 
         # Resetting the signal stuff once done iterating
         if self._worker_id is not None:
