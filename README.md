@@ -17,9 +17,13 @@ source env/bin/activate
 pip install .
 ```
 
-You can also install it directly from GitHub.
+You can also install it directly from GitHub with one of the two following options.
 
 ```bash
+# This first option is likely to be faster to download
+pip install https://github.com/bendabir/torch-kafka/archive/1.1.0.tar.gz
+
+# Probably slower because of the git clone
 pip install git+https://github.com/bendabir/torch-kafka@1.1.0
 ```
 
