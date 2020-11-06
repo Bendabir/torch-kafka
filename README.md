@@ -25,7 +25,7 @@ For every example, we'll use this class that implements a concrete data processi
 
 ```python
 import torch
-from kafka_dataset import KafkaDataset
+from torchkafka import KafkaDataset
 
 class MyDataset(KafkaDataset):
     def _process(self, record):
@@ -39,7 +39,7 @@ For singleprocessing, this is quite straight forward. We just need to build a da
 
 ```python
 from torch.utils.data import DataLoader
-from kafka_dataset import auto_commit
+from torchkafka import auto_commit
 
 # We can define some other settings of the consumer here
 # (max_poll_records, session_timeout_ms, etc.).
@@ -61,7 +61,7 @@ For multiprocessing, it requires some more tweaks (but not that much, don't worr
 
 ```python
 from torch.utils.data import DataLoader
-from kafka_dataset import auto_commit
+from torchkafka import auto_commit
 
 # Define a placeholder dataset (without any Kafka consumer).
 # Consumers will be initialized by the dataloader.
