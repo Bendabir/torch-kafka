@@ -43,6 +43,19 @@ class MyDataset(KafkaDataset):
         return torch.rand(8)
 ```
 
+In some cases, you might also want to override the consumer instanciation method (to force some parameters for instance). For example :
+
+```python
+class MyDataset(KafkaDataset):
+    # ...
+
+    @classmethod
+    def new_consumer(cls, *args, **kwargs):
+        kwargs["value_deserializer"] = json.loads
+
+        return super(cls, cls).new_consumer(*args, **kwargs)
+```
+
 ### Regular usage (singleprocessing)
 
 For singleprocessing, this is quite straight forward. We just need to build a dataset and a dataloader as usual, and then use a little helper to auto-commit the batches for us. The batch size is just given as an example.

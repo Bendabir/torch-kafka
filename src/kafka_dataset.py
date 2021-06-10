@@ -180,8 +180,8 @@ class KafkaDataset(IterableDataset):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def new_consumer(*args, **kwargs):
+    @classmethod
+    def new_consumer(cls, *args, **kwargs):
         """Build a new Kafka consumer. It disables the auto-commit.
 
         Parameters
