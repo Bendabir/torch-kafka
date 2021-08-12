@@ -21,10 +21,10 @@ You can also install it directly from GitHub with one of the two following optio
 
 ```bash
 # This first option is likely to be faster to download
-pip install https://github.com/bendabir/torch-kafka/archive/1.1.0.tar.gz
+pip install https://github.com/bendabir/torch-kafka/archive/1.2.0.tar.gz
 
 # Probably slower because of the git clone
-pip install git+https://github.com/bendabir/torch-kafka@1.1.0
+pip install git+https://github.com/bendabir/torch-kafka@1.2.0
 ```
 
 ## Usage
