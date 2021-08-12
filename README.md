@@ -56,6 +56,29 @@ class MyDataset(KafkaDataset):
         return super(cls, cls).new_consumer(*args, **kwargs)
 ```
 
+If you need to add some attributes to your dataset, you can override both the `__init__` and `placeholder` methods. If the `_process` method returns `None`, then the element is skipped by the dataset.
+
+```python
+class MyDataset(KafkaDataset):
+    def __init__(self, min_size: int, *args, **kwargs):
+        self.min_size = min_size
+
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def placeholder(cls, min_size: int):
+        return cls(min_size, _is_placeholder = True)
+
+    def _process(self, record):
+        # Do something here with the attribute
+        elements: list = json.loads(record.value)
+
+        if len(elements) < self.min_size:
+            return None
+
+        return elements
+```
+
 ### Regular usage (singleprocessing)
 
 For singleprocessing, this is quite straight forward. We just need to build a dataset and a dataloader as usual, and then use a little helper to auto-commit the batches for us. The batch size is just given as an example.
