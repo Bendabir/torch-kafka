@@ -154,7 +154,12 @@ class KafkaDataset(IterableDataset):
             signal.signal(self._COMMIT_SIGNAL, self.commit)
 
         for record in self._consumer:
-            yield self._process(record)
+            # Not using walrus here to give the lib a shot to work on Python
+            # versions prior 3.8
+            data = self._process(record)
+
+            if data is not None:
+                yield data
 
             # Commit in the loop when multiprocessed.
             # This will block the loop and avoid deadlock issues.
