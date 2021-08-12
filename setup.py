@@ -16,7 +16,7 @@ EXTRA_REQUIREMENTS = {
 
 setup(
     name = "torchkafka",
-    version = "1.1.1",
+    version = "1.2.0",
     description = "PyTorch dataset to fetch data from Kafka.",
     long_description = README_CONTENT,
     long_description_content_type = "text/markdown",
